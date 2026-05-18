@@ -3,6 +3,7 @@ package com.invoiceapp.notification;
 import com.invoiceapp.auth.User;
 import com.invoiceapp.shared.ApiResponse;
 import com.invoiceapp.shared.PagedResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -19,6 +20,7 @@ import java.util.UUID;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final FirebasePushService pushService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<NotificationDTO.Response>>> list(
@@ -48,5 +50,21 @@ public class NotificationController {
             @AuthenticationPrincipal User user) {
         notificationService.markAllAsRead(user.getId());
         return ResponseEntity.ok(ApiResponse.ok(null, "Todas las notificaciones marcadas como leídas"));
+    }
+
+    @PostMapping("/register-token")
+    public ResponseEntity<ApiResponse<Void>> registerToken(
+            @Valid @RequestBody NotificationDTO.FcmTokenRequest request,
+            @AuthenticationPrincipal User user) {
+        pushService.registerToken(user.getId(), request.getToken(), request.getDeviceInfo());
+        return ResponseEntity.ok(ApiResponse.ok(null, "Token registrado"));
+    }
+
+    @DeleteMapping("/unregister-token")
+    public ResponseEntity<ApiResponse<Void>> unregisterToken(
+            @Valid @RequestBody NotificationDTO.FcmTokenRequest request,
+            @AuthenticationPrincipal User user) {
+        pushService.unregisterToken(user.getId(), request.getToken());
+        return ResponseEntity.ok(ApiResponse.ok(null, "Token eliminado"));
     }
 }

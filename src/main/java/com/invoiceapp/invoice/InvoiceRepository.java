@@ -21,9 +21,9 @@ public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
 
     Optional<Invoice> findByIdAndCompanyId(UUID id, UUID companyId);
 
-    @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(i.invoiceNumber, 5) AS int)), 0) " +
-           "FROM Invoice i WHERE i.company.id = :companyId AND i.invoiceNumber LIKE :prefix%")
-    int findMaxInvoiceNumber(@Param("companyId") UUID companyId, @Param("prefix") String prefix);
+    @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(i.invoiceNumber, LENGTH(:prefix) + 1) AS integer)), 0) " +
+           "FROM Invoice i WHERE i.company.id = :companyId AND i.invoiceNumber LIKE CONCAT(:prefix, '%')")
+    int findMaxSequenceForPrefix(@Param("companyId") UUID companyId, @Param("prefix") String prefix);
 
     @Query("SELECT COUNT(i) FROM Invoice i WHERE i.company.id = :companyId AND i.status = :status")
     long countByCompanyIdAndStatus(@Param("companyId") UUID companyId, @Param("status") String status);

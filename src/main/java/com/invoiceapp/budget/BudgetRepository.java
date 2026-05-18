@@ -12,7 +12,7 @@ public interface BudgetRepository extends JpaRepository<Budget, UUID> {
     Page<Budget> findByCompanyId(UUID companyId, Pageable pageable);
     Optional<Budget> findByIdAndCompanyId(UUID id, UUID companyId);
 
-    @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(b.budgetNumber, 5) AS int)), 0) " +
-           "FROM Budget b WHERE b.company.id = :companyId AND b.budgetNumber LIKE :prefix%")
+    @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(b.budgetNumber, LENGTH(:prefix) + 1) AS integer)), 0) " +
+           "FROM Budget b WHERE b.company.id = :companyId AND b.budgetNumber LIKE CONCAT(:prefix, '%')")
     int findMaxBudgetNumber(@Param("companyId") UUID companyId, @Param("prefix") String prefix);
 }

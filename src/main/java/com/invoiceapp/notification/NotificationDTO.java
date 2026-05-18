@@ -1,10 +1,18 @@
 package com.invoiceapp.notification;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import java.time.Instant;
 import java.util.UUID;
 
 public class NotificationDTO {
+
+    @Data @NoArgsConstructor @AllArgsConstructor
+    public static class FcmTokenRequest {
+        @NotBlank(message = "El token FCM es requerido")
+        private String token;
+        private String deviceInfo;
+    }
 
     @Data @Builder @NoArgsConstructor @AllArgsConstructor
     public static class Response {

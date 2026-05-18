@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 @Service
@@ -22,6 +21,7 @@ import java.util.UUID;
 public class InvoiceService {
 
     private final InvoiceRepository invoiceRepository;
+    private final InvoiceNumberService invoiceNumberService;
     private final CompanyService companyService;
     private final ClientService clientService;
     private final RecurringInvoiceService recurringInvoiceService;
@@ -51,7 +51,7 @@ public class InvoiceService {
         Invoice invoice = Invoice.builder()
                 .company(company)
                 .client(client)
-                .invoiceNumber(generateInvoiceNumber(companyId))
+                .invoiceNumber(invoiceNumberService.next(companyId))
                 .issueDate(request.getIssueDate())
                 .dueDate(request.getDueDate())
                 .paymentTerms(request.getPaymentTerms())
@@ -143,7 +143,7 @@ public class InvoiceService {
         Invoice copy = Invoice.builder()
                 .company(original.getCompany())
                 .client(original.getClient())
-                .invoiceNumber(generateInvoiceNumber(companyId))
+                .invoiceNumber(invoiceNumberService.next(companyId))
                 .status("draft")
                 .issueDate(LocalDate.now())
                 .dueDate(LocalDate.now().plusDays(30))
@@ -182,14 +182,6 @@ public class InvoiceService {
     public Invoice getInvoiceOrThrow(UUID invoiceId, UUID companyId) {
         return invoiceRepository.findByIdAndCompanyId(invoiceId, companyId)
                 .orElseThrow(() -> new EntityNotFoundException("Factura no encontrada"));
-    }
-
-    private String generateInvoiceNumber(UUID companyId) {
-        String prefix = "INV-";
-        String yearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyMM"));
-        String fullPrefix = prefix + yearMonth;
-        int maxNum = invoiceRepository.findMaxInvoiceNumber(companyId, fullPrefix);
-        return fullPrefix + String.format("%04d", maxNum + 1);
     }
 
     private void validateStatusTransition(String current, String next) {

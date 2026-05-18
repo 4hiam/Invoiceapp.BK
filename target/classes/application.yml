@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: invoice-app-backend
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/invoiceapp
+    username: ${DB_USERNAME:invoiceapp}
+    password: ${DB_PASSWORD:invoiceapp}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+server:
+  port: ${SERVER_PORT:8080}
+
+# JWT Configuration
+app:
+  jwt:
+    secret: ${JWT_SECRET:your-256-bit-secret-key-change-in-production-please}
+    access-token-expiration-ms: 900000       # 15 minutes
+    refresh-token-expiration-ms: 604800000   # 7 days
+
+  # Firebase
+  firebase:
+    credentials-path: ${FIREBASE_CREDENTIALS_PATH:firebase-service-account.json}
+
+  # Recurring invoices
+  recurring:
+    notification-days-before: 1   # Notify 1 day before generation
+    expiration-hours: 24          # Hours before notification expires
+
+logging:
+  level:
+    com.invoiceapp: DEBUG
+    org.springframework.security: INFO
+    org.hibernate.SQL: INFO

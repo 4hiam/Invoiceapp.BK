@@ -23,6 +23,7 @@ public class BudgetService {
 
     private final BudgetRepository budgetRepository;
     private final InvoiceRepository invoiceRepository;
+    private final InvoiceNumberService invoiceNumberService;
     private final CompanyService companyService;
     private final ClientService clientService;
 
@@ -111,13 +112,9 @@ public class BudgetService {
             throw new IllegalArgumentException("Solo se pueden convertir presupuestos aceptados");
         }
 
-        String invNumber = "INV-" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyMM"));
-        int max = invoiceRepository.findMaxInvoiceNumber(companyId, invNumber);
-        invNumber += String.format("%04d", max + 1);
-
         Invoice invoice = Invoice.builder()
                 .company(budget.getCompany()).client(budget.getClient())
-                .invoiceNumber(invNumber).status("draft")
+                .invoiceNumber(invoiceNumberService.next(companyId)).status("draft")
                 .issueDate(LocalDate.now()).dueDate(LocalDate.now().plusDays(30))
                 .discount(budget.getDiscount()).notes(budget.getNotes())
                 .build();

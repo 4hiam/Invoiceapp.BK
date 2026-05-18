@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.*;
-import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 @Slf4j
@@ -21,7 +20,9 @@ import java.util.UUID;
 public class RecurringInvoiceService {
 
     private final RecurringInvoiceRepository recurringRepository;
+    // InvoiceRepository usado directamente para evitar dependencia circular con InvoiceService
     private final InvoiceRepository invoiceRepository;
+    private final InvoiceNumberService invoiceNumberService;
     private final CompanyService companyService;
 
     public Page<RecurringDTO.Response> findAll(UUID companyId, UUID userId, Pageable pageable) {
@@ -133,7 +134,7 @@ public class RecurringInvoiceService {
     }
 
     private Invoice generateInvoiceFromRecurring(RecurringInvoice ri) {
-        String invoiceNumber = generateInvoiceNumber(ri.getCompany().getId());
+        String invoiceNumber = invoiceNumberService.next(ri.getCompany().getId());
         LocalDate today = LocalDate.now();
 
         Invoice invoice = Invoice.builder()
@@ -161,14 +162,6 @@ public class RecurringInvoiceService {
 
         invoice.recalculateTotals();
         return invoice;
-    }
-
-    private String generateInvoiceNumber(UUID companyId) {
-        String prefix = "INV-";
-        String yearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyMM"));
-        String fullPrefix = prefix + yearMonth;
-        int maxNum = invoiceRepository.findMaxInvoiceNumber(companyId, fullPrefix);
-        return fullPrefix + String.format("%04d", maxNum + 1);
     }
 
     private Instant calculateNextGenerationDate(String frequency, int dayOfMonth) {
